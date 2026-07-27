@@ -1076,7 +1076,7 @@ function App() {
 
     return (
       <>
-        <div className="page-title-row"><div><p className="eyebrow">Database Page</p><h1>CRM Database</h1></div>{renderRefreshButton()}</div>
+        <div className="page-title-row"><div><p className="eyebrow">Database</p><h1>CRM Database</h1></div>{renderRefreshButton()}</div>
         <div className="pill-row">{databaseViews.map((view) => <button key={view.id} className={databaseList === view.id ? 'active' : ''} onClick={() => setDatabaseList(view.id)}>{view.label}</button>)}</div>
         {databaseList === 'contacts' && renderContactsTable()}
         {databaseList === 'opportunities' && <DataTable columns={opportunityColumns} rows={opportunities} rowKey="opportunity_id" emptyText="No opportunities loaded yet." />}
