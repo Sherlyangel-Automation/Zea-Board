@@ -48,7 +48,7 @@ const defaultInvoiceQuery = {
 
 const navItems = [
   { id: 'dashboard', label: 'Admin Dashboard', icon: 'dashboard' },
-  { id: 'database', label: 'Database Page', icon: 'database' },
+  { id: 'database', label: 'Database', icon: 'database' },
   { id: 'invoices', label: 'Invoices', icon: 'invoice' },
   { id: 'employee-management', label: 'Employee Management', icon: 'employees', group: 'Settings' },
   { id: 'user-management', label: 'User Management', icon: 'users', group: 'Settings' },
