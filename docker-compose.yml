@@ -7,7 +7,7 @@ services:
     env_file:
       - ./backend/.env
     ports:
-      - "5001:5001"
+      - "5555:5001"
     restart: unless-stopped
 
   frontend:
@@ -18,7 +18,7 @@ services:
     env_file:
       - ./frontend/.env
     ports:
-      - "5173:5173"
+      - "6666:5173"
     depends_on:
       - backend
     restart: unless-stopped
