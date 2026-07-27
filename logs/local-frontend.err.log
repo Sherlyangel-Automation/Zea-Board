@@ -1,0 +1,5 @@
+[2m11:19:34 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: EBUSY: resource busy or locked, open 'C:\Users\URL\Downloads\New ZeaBoard 1\frontend\src\main.jsx'[39m
+      at async open (node:internal/fs/promises:641:25)
+      at async Object.readFile (node:internal/fs/promises:1245:14)
+      at async loadAndTransform (file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/frontend/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:35787:16)
+      at async viteTransformMiddleware (file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/frontend/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:37369:24)

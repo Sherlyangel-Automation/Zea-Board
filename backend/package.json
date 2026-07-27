@@ -1,0 +1,37 @@
+{
+  "name": "zea-board-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "migrate": "node src/db/migrate.js",
+    "inspect:contacts": "node src/scripts/inspectContacts.js",
+    "inspect:opportunities": "node src/scripts/inspectOpportunities.js",
+    "inspect:invoices": "node src/scripts/inspectInvoices.js",
+    "inspect:users": "node src/scripts/inspectUsers.js",
+    "backfill:users": "node src/scripts/backfillUsers.js",
+    "backfill:opportunities": "node src/scripts/backfillOpportunities.js",
+    "inspect:tables": "node src/scripts/inspectTables.js",
+    "backfill:contacts": "node src/scripts/backfillContacts.js",
+    "backfill:contact-leadgen-owner": "node src/scripts/backfillContactLeadgenOwner.js",
+    "backfill:invoices": "node src/scripts/backfillInvoices.js",
+    "backfill:invoice-items": "node src/scripts/backfillInvoiceItems.js",
+    "apply:delete-events": "node src/scripts/applyDeleteEvents.js",
+    "cleanup:tables": "node src/scripts/cleanupTables.js",
+    "rename:contacts-table": "node src/scripts/renameContactsTable.js",
+    "backfill:crm-created": "node src/scripts/backfillCrmCreated.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "pg": "^8.13.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}

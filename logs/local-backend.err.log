@@ -1,0 +1,312 @@
+error: invalid input syntax for type json
+    at C:\Users\URL\Downloads\New ZeaBoard 1\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async updateDashboard (file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/models/dashboards.js:87:18)
+    at async file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/routes/dashboards.js:57:23 {
+  length: 239,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: 'Expected ":", but found "}".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: 'JSON data, line 1: ...\\",\\"textColor\\":\\"#172033\\",\\"imageUrl\\":\\"\\"}"}\n' +
+    "unnamed portal parameter $4 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'jsonfuncs.c',
+  line: '646',
+  routine: 'json_errsave_error'
+}
+error: invalid input syntax for type json
+    at C:\Users\URL\Downloads\New ZeaBoard 1\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async updateDashboard (file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/models/dashboards.js:87:18)
+    at async file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/routes/dashboards.js:57:23 {
+  length: 239,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: 'Expected ":", but found "}".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: 'JSON data, line 1: ...\\",\\"textColor\\":\\"#172033\\",\\"imageUrl\\":\\"\\"}"}\n' +
+    "unnamed portal parameter $4 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'jsonfuncs.c',
+  line: '646',
+  routine: 'json_errsave_error'
+}
+error: invalid input syntax for type json
+    at C:\Users\URL\Downloads\New ZeaBoard 1\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async updateDashboard (file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/models/dashboards.js:87:18)
+    at async file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/routes/dashboards.js:57:23 {
+  length: 239,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: 'Expected ":", but found "}".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: 'JSON data, line 1: ...\\",\\"textColor\\":\\"#172033\\",\\"imageUrl\\":\\"\\"}"}\n' +
+    "unnamed portal parameter $4 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'jsonfuncs.c',
+  line: '646',
+  routine: 'json_errsave_error'
+}
+error: invalid input syntax for type json
+    at C:\Users\URL\Downloads\New ZeaBoard 1\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async updateDashboard (file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/models/dashboards.js:87:18)
+    at async file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/routes/dashboards.js:57:23 {
+  length: 239,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: 'Expected ":", but found "}".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: 'JSON data, line 1: ...\\",\\"textColor\\":\\"#172033\\",\\"imageUrl\\":\\"\\"}"}\n' +
+    "unnamed portal parameter $4 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'jsonfuncs.c',
+  line: '646',
+  routine: 'json_errsave_error'
+}
+error: invalid input syntax for type json
+    at C:\Users\URL\Downloads\New ZeaBoard 1\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async updateDashboard (file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/models/dashboards.js:87:18)
+    at async file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/routes/dashboards.js:57:23 {
+  length: 239,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: 'Expected ":", but found "}".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: 'JSON data, line 1: ...\\",\\"textColor\\":\\"#172033\\",\\"imageUrl\\":\\"\\"}"}\n' +
+    "unnamed portal parameter $4 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'jsonfuncs.c',
+  line: '646',
+  routine: 'json_errsave_error'
+}
+error: invalid input syntax for type json
+    at C:\Users\URL\Downloads\New ZeaBoard 1\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async updateDashboard (file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/models/dashboards.js:87:18)
+    at async file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/routes/dashboards.js:57:23 {
+  length: 239,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: 'Expected ":", but found "}".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: 'JSON data, line 1: ...\\",\\"textColor\\":\\"#172033\\",\\"imageUrl\\":\\"\\"}"}\n' +
+    "unnamed portal parameter $4 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'jsonfuncs.c',
+  line: '646',
+  routine: 'json_errsave_error'
+}
+error: invalid input syntax for type json
+    at C:\Users\URL\Downloads\New ZeaBoard 1\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async updateDashboard (file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/models/dashboards.js:87:18)
+    at async file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/routes/dashboards.js:57:23 {
+  length: 239,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: 'Expected ":", but found "}".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: 'JSON data, line 1: ...\\",\\"textColor\\":\\"#172033\\",\\"imageUrl\\":\\"\\"}"}\n' +
+    "unnamed portal parameter $4 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'jsonfuncs.c',
+  line: '646',
+  routine: 'json_errsave_error'
+}
+error: invalid input syntax for type json
+    at C:\Users\URL\Downloads\New ZeaBoard 1\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async updateDashboard (file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/models/dashboards.js:87:18)
+    at async file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/routes/dashboards.js:57:23 {
+  length: 242,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: 'Expected ":", but found ",".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: 'JSON data, line 1: ...\\",\\"textColor\\":\\"#172033\\",\\"imageUrl\\":\\"\\"}",...\n' +
+    "unnamed portal parameter $4 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'jsonfuncs.c',
+  line: '646',
+  routine: 'json_errsave_error'
+}
+error: invalid input syntax for type json
+    at C:\Users\URL\Downloads\New ZeaBoard 1\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async updateDashboard (file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/models/dashboards.js:87:18)
+    at async file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/routes/dashboards.js:57:23 {
+  length: 242,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: 'Expected ":", but found ",".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: 'JSON data, line 1: ...\\",\\"textColor\\":\\"#172033\\",\\"imageUrl\\":\\"\\"}",...\n' +
+    "unnamed portal parameter $4 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'jsonfuncs.c',
+  line: '646',
+  routine: 'json_errsave_error'
+}
+error: invalid input syntax for type json
+    at C:\Users\URL\Downloads\New ZeaBoard 1\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async updateDashboard (file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/models/dashboards.js:87:18)
+    at async file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/routes/dashboards.js:57:23 {
+  length: 242,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: 'Expected ":", but found ",".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: 'JSON data, line 1: ...\\",\\"textColor\\":\\"#172033\\",\\"imageUrl\\":\\"\\"}",...\n' +
+    "unnamed portal parameter $4 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'jsonfuncs.c',
+  line: '646',
+  routine: 'json_errsave_error'
+}
+error: invalid input syntax for type json
+    at C:\Users\URL\Downloads\New ZeaBoard 1\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async updateDashboard (file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/models/dashboards.js:87:18)
+    at async file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/routes/dashboards.js:57:23 {
+  length: 242,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: 'Expected ":", but found ",".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: 'JSON data, line 1: ...\\",\\"textColor\\":\\"#172033\\",\\"imageUrl\\":\\"\\"}",...\n' +
+    "unnamed portal parameter $4 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'jsonfuncs.c',
+  line: '646',
+  routine: 'json_errsave_error'
+}
+error: invalid input syntax for type json
+    at C:\Users\URL\Downloads\New ZeaBoard 1\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async updateDashboard (file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/models/dashboards.js:87:18)
+    at async file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/routes/dashboards.js:57:23 {
+  length: 242,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: 'Expected ":", but found ",".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: 'JSON data, line 1: ...\\",\\"textColor\\":\\"#172033\\",\\"imageUrl\\":\\"\\"}",...\n' +
+    "unnamed portal parameter $4 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'jsonfuncs.c',
+  line: '646',
+  routine: 'json_errsave_error'
+}
+error: invalid input syntax for type json
+    at C:\Users\URL\Downloads\New ZeaBoard 1\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async updateDashboard (file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/models/dashboards.js:87:18)
+    at async file:///C:/Users/URL/Downloads/New%20ZeaBoard%201/backend/src/routes/dashboards.js:57:23 {
+  length: 242,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: 'Expected ":", but found ",".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: 'JSON data, line 1: ...\\",\\"textColor\\":\\"#172033\\",\\"imageUrl\\":\\"\\"}",...\n' +
+    "unnamed portal parameter $4 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'jsonfuncs.c',
+  line: '646',
+  routine: 'json_errsave_error'
+}
