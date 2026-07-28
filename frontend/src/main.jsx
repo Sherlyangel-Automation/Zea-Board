@@ -82,6 +82,24 @@ const roleAllowedPages = {
   User: ['dashboard', 'invoices']
 };
 
+const permissionLevels = [
+  { value: 'hide', label: 'Hide' },
+  { value: 'view', label: 'View Only' },
+  { value: 'edit', label: 'View & Edit' }
+];
+const permissionEditorItems = navItems.filter((item) => item.id !== 'database');
+
+const userTypeOptions = ['Owner', 'Admin', 'Developer', 'User'];
+
+function defaultPermissionsForRole(role = 'User') {
+  return navItems.reduce((permissions, item) => {
+    if (role === 'Developer') permissions[item.id] = 'edit';
+    else if (role === 'Owner' || role === 'Admin') permissions[item.id] = item.id === 'database' ? 'hide' : 'edit';
+    else permissions[item.id] = item.id === 'user-management' ? 'view' : 'hide';
+    return permissions;
+  }, {});
+}
+
 const invoiceCardColorDefaults = {
   totalInvoices: '#3158a8',
   paidInvoices: '#287347',
@@ -474,6 +492,19 @@ function App() {
   const [exchangeRates, setExchangeRates] = useState({ USD: 1 });
   const [exchangeUpdatedAt, setExchangeUpdatedAt] = useState('');
   const [users, setUsers] = useState([]);
+  const [appUsers, setAppUsers] = useState([]);
+  const [userDrawerOpen, setUserDrawerOpen] = useState(false);
+  const [editingAppUser, setEditingAppUser] = useState(null);
+  const [userActionMenuId, setUserActionMenuId] = useState('');
+  const [deleteUserTarget, setDeleteUserTarget] = useState(null);
+  const [deletingUserId, setDeletingUserId] = useState('');
+  const [appUserForm, setAppUserForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    userType: 'User',
+    permissions: defaultPermissionsForRole('User')
+  });
   const [auditLogs, setAuditLogs] = useState([]);
   const [auditFilters, setAuditFilters] = useState({ eventType: '', contactId: '', dateFrom: '', dateTo: '' });
   const [dashboards, setDashboards] = useState([]);
@@ -485,7 +516,8 @@ function App() {
   const [openWidgetFolders, setOpenWidgetFolders] = useState({ elements: true, contacts: true });
   const [activePage, setActivePage] = useState(getInitialActivePage);
   const [databaseList, setDatabaseList] = useState('contacts');
-  const [message, setMessage] = useState('');
+  const [notifications, setNotifications] = useState([]);
+  const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
@@ -496,10 +528,25 @@ function App() {
   const dashboardCanvasRef = useRef(null);
   const dashboardSaveTimerRef = useRef(null);
   const settingsFlyoutRef = useRef(null);
+  const notificationCenterRef = useRef(null);
+  const userActionMenuRef = useRef(null);
 
   const activeSubAccount = useMemo(
     () => subAccounts.find((subAccount) => subAccount.id === activeSubAccountId),
     [activeSubAccountId, subAccounts]
+  );
+
+  const dashboardPermissionItems = useMemo(
+    () => dashboards.map((dashboard) => ({
+      id: `dashboard-view:${dashboard.id}`,
+      label: dashboard.name
+    })),
+    [dashboards]
+  );
+
+  const userPermissionItems = useMemo(
+    () => [...permissionEditorItems, ...dashboardPermissionItems],
+    [dashboardPermissionItems]
   );
 
   const appStyle = {
@@ -514,6 +561,14 @@ function App() {
     '--column-font': openSansSimpleFontStack,
     '--hero-image': customization.backgroundImageUrl ? `url(${customization.backgroundImageUrl})` : 'none'
   };
+
+  function getDefaultPermissionsForRole(userType = 'User') {
+    const permissions = defaultPermissionsForRole(userType);
+    dashboardPermissionItems.forEach((dashboard) => {
+      permissions[dashboard.id] = ['Developer', 'Owner', 'Admin'].includes(userType) ? 'edit' : 'hide';
+    });
+    return permissions;
+  }
 
   async function loadSubAccounts() {
     const response = await apiFetch('/api/sub-accounts');
@@ -576,6 +631,12 @@ function App() {
     setUsers(data.users || []);
   }
 
+  async function loadAppUsers() {
+    const response = await apiFetch('/api/app-users');
+    const data = await response.json();
+    setAppUsers(data.users || []);
+  }
+
   async function loadDashboards() {
     const response = await apiFetch('/api/dashboards');
     const data = await response.json();
@@ -601,6 +662,30 @@ function App() {
     const response = await apiFetch(`/api/audit-logs${query ? `?${query}` : ''}`);
     const data = await response.json();
     setAuditLogs(data.logs || []);
+  }
+
+  function setMessage(content) {
+    const text = String(content || '').trim();
+    if (!text) return;
+
+    setNotifications((currentNotifications) => [
+      {
+        id: `${Date.now()}-${Math.random()}`,
+        message: text,
+        createdAt: new Date().toISOString()
+      },
+      ...currentNotifications
+    ].slice(0, 50));
+    setNotificationCenterOpen(true);
+  }
+
+  function formatNotificationTime(createdAt) {
+    return new Intl.DateTimeFormat('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      month: 'short',
+      day: 'numeric'
+    }).format(new Date(createdAt));
   }
 
   async function loadCurrentUser() {
@@ -652,7 +737,7 @@ function App() {
   }
 
   async function refreshAll() {
-    await Promise.all([loadSubAccounts(), loadOpportunities(), loadInvoices(), loadUsers(), loadCustomization(), loadAuditLogs(), loadDashboards()]);
+    await Promise.all([loadSubAccounts(), loadOpportunities(), loadInvoices(), loadUsers(), loadAppUsers(), loadCustomization(), loadAuditLogs(), loadDashboards()]);
   }
 
   useEffect(() => {
@@ -676,6 +761,12 @@ function App() {
     function handleOutsideClick(event) {
       if (settingsFlyoutRef.current && !settingsFlyoutRef.current.contains(event.target)) {
         setSettingsMenuOpen(false);
+      }
+      if (notificationCenterRef.current && !notificationCenterRef.current.contains(event.target)) {
+        setNotificationCenterOpen(false);
+      }
+      if (userActionMenuRef.current && !userActionMenuRef.current.contains(event.target)) {
+        setUserActionMenuId('');
       }
     }
 
@@ -820,6 +911,93 @@ function App() {
       setMessage(error.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  function openNewUserDrawer() {
+    setEditingAppUser(null);
+    setAppUserForm({
+      name: '',
+      email: '',
+      password: '',
+      userType: 'User',
+      permissions: getDefaultPermissionsForRole('User')
+    });
+    setUserDrawerOpen(true);
+  }
+
+  function openEditUserDrawer(user) {
+    setEditingAppUser(user);
+    setAppUserForm({
+      name: user.name || '',
+      email: user.email || '',
+      password: '',
+      userType: user.userType || user.role || 'User',
+      permissions: { ...getDefaultPermissionsForRole(user.userType || user.role || 'User'), ...(user.permissions || {}) }
+    });
+    setUserActionMenuId('');
+    setUserDrawerOpen(true);
+  }
+
+  function updateAppUserType(userType) {
+    setAppUserForm({ ...appUserForm, userType, permissions: getDefaultPermissionsForRole(userType) });
+  }
+
+  function updatePermission(pageId, level) {
+    setAppUserForm({
+      ...appUserForm,
+      permissions: {
+        ...appUserForm.permissions,
+        [pageId]: pageId === 'database' && appUserForm.userType !== 'Developer' ? 'hide' : level
+      }
+    });
+  }
+
+  async function saveAppUser(event) {
+    event.preventDefault();
+    if (!canManageAppUsers()) return setMessage('You do not have permission to manage users.');
+    setLoading(true);
+    try {
+      const payload = { ...appUserForm };
+      if (editingAppUser && !payload.password) delete payload.password;
+      const response = await apiFetch(`/api/app-users${editingAppUser ? `/${editingAppUser.id}` : ''}`, {
+        method: editingAppUser ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        const details = data.details?.fieldErrors
+          ? Object.entries(data.details.fieldErrors).flatMap(([field, errors]) => (errors || []).map((error) => `${field}: ${error}`)).join(' ')
+          : '';
+        throw new Error(details || data.error || 'Unable to save user.');
+      }
+      setUserDrawerOpen(false);
+      setEditingAppUser(null);
+      await loadAppUsers();
+      setMessage(editingAppUser ? 'User updated.' : 'User created.');
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function removeAppUser(user) {
+    if (!canManageAppUsers()) return setMessage('You do not have permission to delete users.');
+    setUserActionMenuId('');
+    setDeleteUserTarget(null);
+    setDeletingUserId(user.id);
+    try {
+      const response = await apiFetch(`/api/app-users/${user.id}`, { method: 'DELETE' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Unable to delete user.');
+      await loadAppUsers();
+      setMessage('User deleted.');
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setDeletingUserId('');
     }
   }
 
@@ -1465,6 +1643,129 @@ function App() {
     return <><div className="page-title-row"><div><p className="eyebrow">Settings</p><h1>Employee Management</h1><p>Database table: user_list</p></div><button onClick={loadUsers}>Refresh</button></div><DataTable columns={userColumns} rows={users} rowKey="id" emptyText="No employees loaded yet." /></>;
   }
 
+  function renderUserManagement() {
+    const canManage = canManageAppUsers();
+    const appUserColumns = [
+      { key: 'name', label: 'Name', className: 'left-column', render: (row) => row.name || '-' },
+      { key: 'email', label: 'Email', render: (row) => row.email || '-' },
+      { key: 'userType', label: 'User Type', render: (row) => <StatusBadge value={row.userType || row.role} /> },
+      { key: 'createdAt', label: 'Created Date', render: (row) => row.createdAt ? new Date(row.createdAt).toLocaleDateString() : '-' },
+      { key: 'createdBy', label: 'Created By', render: (row) => row.createdBy || 'System' },
+      {
+        key: 'actions',
+        label: 'Actions',
+        render: (row) => (
+          <div className="row-action-menu" ref={userActionMenuId === row.id ? userActionMenuRef : null}>
+            {deletingUserId === row.id ? (
+              <span className="row-loading-pill">Deleting...</span>
+            ) : (
+              <button type="button" className="icon-menu-button" disabled={!canManage} onClick={() => setUserActionMenuId(userActionMenuId === row.id ? '' : row.id)}>⋮</button>
+            )}
+            {userActionMenuId === row.id && (
+              <div className="export-menu-list user-action-list">
+                <button type="button" onClick={() => openEditUserDrawer(row)}>Edit</button>
+                <button type="button" className="danger-text-button" onClick={() => { setDeleteUserTarget(row); setUserActionMenuId(''); }}>Delete</button>
+              </div>
+            )}
+          </div>
+        )
+      }
+    ];
+
+    return (
+      <>
+        <div className="page-title-row">
+          <div>
+            <p className="eyebrow">Settings</p>
+            <h1>User Management</h1>
+            <p>Create app users, assign roles, and control which pages appear in each sidebar.</p>
+          </div>
+          <button type="button" disabled={!canManage} title={!canManage ? 'You only have view access to the Users list.' : ''} onClick={openNewUserDrawer}>+ New User</button>
+        </div>
+        <DataTable columns={appUserColumns} rows={appUsers} rowKey="id" emptyText="No application users found." />
+
+        {userDrawerOpen && (
+          <div className="details-backdrop user-drawer-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setUserDrawerOpen(false); }}>
+            <aside className="invoice-details-panel user-management-drawer">
+              <div className="panel-header compact">
+                <div>
+                  <p className="eyebrow">User Access</p>
+                  <h1>{editingAppUser ? 'Edit User' : 'New User'}</h1>
+                </div>
+                <button type="button" className="ghost-button" onClick={() => setUserDrawerOpen(false)}>Close</button>
+              </div>
+              <form className="user-management-form" onSubmit={saveAppUser}>
+                <label>Name<input value={appUserForm.name} onChange={(event) => setAppUserForm({ ...appUserForm, name: event.target.value })} required /></label>
+                <label>Email<input type="email" value={appUserForm.email} onChange={(event) => setAppUserForm({ ...appUserForm, email: event.target.value })} required /></label>
+                <label>Password<input type="password" value={appUserForm.password} onChange={(event) => setAppUserForm({ ...appUserForm, password: event.target.value })} required={!editingAppUser} placeholder={editingAppUser ? 'Leave blank to keep current password' : 'Enter password'} /></label>
+                <label>User Type
+                  <CustomSelect
+                    value={appUserForm.userType}
+                    onChange={updateAppUserType}
+                    options={userTypeOptions.map((userType) => ({ value: userType, label: userType }))}
+                  />
+                </label>
+
+                <div className="permission-editor">
+                  <h2>Page Access Permissions</h2>
+                  <div className="permission-table-wrap">
+                    <table className="permission-table">
+                      <thead>
+                        <tr>
+                          <th>Page</th>
+                          <th>Hide</th>
+                          <th>View Only</th>
+                          <th>View & Edit</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {userPermissionItems.map((page) => (
+                          <tr key={page.id}>
+                            <td className="permission-page-name">
+                              <span>{page.label}</span>
+                              {String(page.id).startsWith('dashboard-view:') && <small>Dashboard</small>}
+                            </td>
+                            {permissionLevels.map((level) => (
+                              <td key={level.value}>
+                                <input
+                                  type="radio"
+                                  name={`permission-${page.id}`}
+                                  value={level.value}
+                                  checked={(appUserForm.permissions?.[page.id] || 'hide') === level.value}
+                                  onChange={() => updatePermission(page.id, level.value)}
+                                  aria-label={`${page.label} ${level.label}`}
+                                />
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <button type="submit" disabled={loading}>{loading ? 'Saving...' : 'Save User'}</button>
+              </form>
+            </aside>
+          </div>
+        )}
+
+        {deleteUserTarget && (
+          <div className="confirm-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDeleteUserTarget(null); }}>
+            <section className="confirm-popup">
+              <h2>Delete User</h2>
+              <p>Are you sure you want to delete this user? This action cannot be undone.</p>
+              <div className="confirm-actions">
+                <button type="button" className="ghost-button" onClick={() => setDeleteUserTarget(null)}>Cancel</button>
+                <button type="button" className="danger-button" onClick={() => removeAppUser(deleteUserTarget)}>Delete</button>
+              </div>
+            </section>
+          </div>
+        )}
+      </>
+    );
+  }
+
   function contactTags(contact) {
     if (Array.isArray(contact.tags)) return contact.tags.map(String).map((tag) => tag.trim()).filter(Boolean);
     return String(contact.tags || '').split(',').map((tag) => tag.trim()).filter(Boolean);
@@ -1595,6 +1896,16 @@ function App() {
   }
 
   function renderDashboardEditor() {
+    if (!canEditPage('dashboard-editor')) {
+      return (
+        <div className="panel placeholder-panel">
+          <p className="eyebrow">Settings</p>
+          <h1>Dashboard Editor</h1>
+          <p>You don't have permission to edit this dashboard.</p>
+        </div>
+      );
+    }
+
     const selectedWidget = editorDashboard?.widgets?.find((widget) => widget.id === selectedWidgetId);
     const existingDashboards = dashboards.filter((dashboard) => dashboard.isActive !== false);
 
@@ -1720,6 +2031,8 @@ function App() {
     if (!dashboard) {
       return <div className="panel placeholder-panel"><p className="eyebrow">Invoices</p><h1>Dashboard not found</h1><p>This dashboard may still be loading or may have been removed.</p></div>;
     }
+    const dashboardPageId = `dashboard-view:${dashboard.id}`;
+    const canEditDashboard = canEditPage('dashboard-editor') && canEditPage(dashboardPageId);
 
     return (
       <>
@@ -1729,7 +2042,18 @@ function App() {
             <h1>{dashboard.name}</h1>
             <p>Linked subaccount: {dashboard.subAccountName}. Widgets only use this subaccount context.</p>
           </div>
-          <button type="button" onClick={() => { setEditorDashboard(normalizeDashboard(dashboard)); setActivePage('dashboard-editor'); }}>Edit Dashboard</button>
+          <button
+            type="button"
+            disabled={!canEditDashboard}
+            title={!canEditDashboard ? "You don't have permission to edit this dashboard." : ''}
+            onClick={() => {
+              if (!canEditDashboard) return;
+              setEditorDashboard(normalizeDashboard(dashboard));
+              setActivePage('dashboard-editor');
+            }}
+          >
+            Edit Dashboard
+          </button>
         </div>
         {renderDashboardCanvas(dashboard, { editable: false })}
       </>
@@ -1799,7 +2123,7 @@ function App() {
   function renderSettingsContent(sectionId) {
     if (sectionId === 'employee-management') return renderEmployeeManagement();
     if (sectionId === 'customization') return renderCustomization();
-    if (sectionId === 'user-management') return renderPlaceholder('User Management', 'Manage app-level users, permissions, and account access.');
+    if (sectionId === 'user-management') return renderUserManagement();
     if (sectionId === 'dashboard-editor') return renderDashboardEditor();
     if (sectionId === 'notifications') return renderPlaceholder('Notification Settings', 'Configure alerts for sync failures, webhook events, and invoice changes.');
     if (sectionId === 'api-webhooks') return renderPlaceholder('API Key & Webhook Page', 'Manage CRM keys, production webhook URLs, and integration status.');
@@ -1809,8 +2133,24 @@ function App() {
 
   function canAccessPage(pageId) {
     if (!authUser) return false;
-    if (String(pageId).startsWith('dashboard-view:')) return true;
+    if (pageId === 'database') return authUser.role === 'Developer';
+    const permission = authUser.permissions?.[pageId];
+    if (permission) return permission !== 'hide';
+    if (String(pageId).startsWith('dashboard-view:')) return ['Developer', 'Owner', 'Admin'].includes(authUser.role);
     return (roleAllowedPages[authUser.role] || roleAllowedPages.User).includes(pageId);
+  }
+
+  function canEditPage(pageId) {
+    if (!authUser) return false;
+    if (authUser.role === 'Developer') return true;
+    if (pageId === 'database') return false;
+    const permission = authUser.permissions?.[pageId];
+    if (String(pageId).startsWith('dashboard-view:')) return permission ? permission === 'edit' : ['Owner', 'Admin'].includes(authUser.role);
+    return permission ? permission === 'edit' : ['Owner', 'Admin'].includes(authUser.role);
+  }
+
+  function canManageAppUsers() {
+    return ['Owner', 'Admin', 'Developer'].includes(authUser?.role) && canEditPage('user-management');
   }
 
   function renderLoginPage() {
@@ -1850,6 +2190,48 @@ function App() {
     return <button onClick={refreshAll} disabled={loading}>{loading ? 'Refreshing...' : 'Refresh'}</button>;
   }
 
+  function renderNotificationCenter() {
+    return (
+      <div className="workspace-topbar">
+        <div className="notification-center" ref={notificationCenterRef}>
+          <button
+            type="button"
+            className="notification-bell-button"
+            onClick={() => setNotificationCenterOpen((isOpen) => !isOpen)}
+            aria-label="Open notification center"
+          >
+            <Icon name="bell" />
+            {!!notifications.length && <em>{notifications.length > 9 ? '9+' : notifications.length}</em>}
+          </button>
+          {notificationCenterOpen && (
+            <div className="notification-panel">
+              <div className="notification-panel-header">
+                <Icon name="bell" />
+                <div>
+                  <strong>Notifications</strong>
+                  <span>Newest first</span>
+                </div>
+              </div>
+              <div className="notification-list">
+                {notifications.length ? notifications.map((notification) => (
+                  <article key={notification.id} className="notification-item">
+                    <span />
+                    <div>
+                      <strong>{notification.message}</strong>
+                      <small>{formatNotificationTime(notification.createdAt)}</small>
+                    </div>
+                  </article>
+                )) : (
+                  <p className="notification-empty">No notifications yet.</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   function renderPage() {
     if (!canAccessPage(activePage)) return renderPageById(roleDefaultPages[authUser?.role] || 'invoices');
     return renderPageById(activePage);
@@ -1882,8 +2264,8 @@ function App() {
           <div className="nav-group">
             <p>Main</p>
             {mainNavItems.map((item) => <button key={item.id} className={activePage === item.id ? 'active' : ''} onClick={() => setActivePage(item.id)}><span><Icon name={item.icon} /></span><b>{item.label}</b></button>)}
-            {dashboards.map((dashboard) => (
-              <button key={dashboard.id} className={activePage === `dashboard-view:${dashboard.id}` ? 'active' : ''} onClick={() => setActivePage(`dashboard-view:${dashboard.id}`)}>
+            {dashboards.filter((dashboard) => canAccessPage(`dashboard-view:${dashboard.id}`)).map((dashboard) => (
+              <button key={dashboard.id} className={`dashboard-nav-item ${activePage === `dashboard-view:${dashboard.id}` ? 'active' : ''}`} onClick={() => setActivePage(`dashboard-view:${dashboard.id}`)}>
                 <span><Icon name="dashboard" /></span>
                 <b>{dashboard.name}</b>
               </button>
@@ -1918,7 +2300,7 @@ function App() {
       </aside>
 
       <section className="workspace">
-        {message && <p className="status-message">{message}</p>}
+        {renderNotificationCenter()}
         {activePage === 'database' && renderAddSubAccountCard()}
         {renderPage()}
       </section>

@@ -41,6 +41,8 @@ CREATE TABLE IF NOT EXISTS app_users (
   username TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
   role TEXT NOT NULL CHECK (role IN ('Owner', 'Admin', 'Developer', 'User')),
+  permissions JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_by UUID REFERENCES app_users(id) ON DELETE SET NULL,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

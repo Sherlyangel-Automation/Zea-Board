@@ -12,6 +12,7 @@ import auditLogsRouter from './routes/auditLogs.js';
 import exchangeRatesRouter from './routes/exchangeRates.js';
 import dashboardsRouter from './routes/dashboards.js';
 import authRouter from './routes/auth.js';
+import appUsersRouter from './routes/appUsers.js';
 import webhooksRouter, { handleGhlWebhook, webhookHealth } from './routes/webhooks.js';
 import { requireAuth } from './middleware/auth.js';
 
@@ -60,6 +61,7 @@ app.use('/api/sub-accounts', subAccountsRouter);
 app.use('/api/opportunities', opportunitiesRouter);
 app.use('/api/invoices', invoicesRouter);
 app.use('/api/users', usersRouter);
+app.use('/api/app-users', appUsersRouter);
 app.use('/api/customization', customizationRouter);
 app.use('/api/audit-logs', auditLogsRouter);
 app.use('/api/exchange-rates', exchangeRatesRouter);
