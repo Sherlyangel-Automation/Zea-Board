@@ -1,8 +1,8 @@
-import { pool } from '../db/pool.js';
+﻿import { pool } from '../db/pool.js';
 
 const DEFAULT_CUSTOMIZATION = {
   appName: 'Zea Board',
-  primaryColor: '#7c3aed',
+  primaryColor: '#4B3F91',
   secondaryColor: '#22d3ee',
   accentColor: '#facc15',
   backgroundColor: '#f4f1ff',
@@ -12,7 +12,7 @@ const DEFAULT_CUSTOMIZATION = {
   sidepanelFontFamily: '"Open Sans", ui-sans-serif, system-ui, sans-serif',
   columnFontFamily: '"Open Sans", ui-sans-serif, system-ui, sans-serif',
   backgroundImageUrl: '',
-  colorPalette: ['#7c3aed', '#a855f7', '#22d3ee', '#f97316', '#facc15']
+  colorPalette: ['#4B3F91', '#6B5CB8', '#22d3ee', '#f97316', '#facc15']
 };
 
 export async function ensureCustomizationTable() {
@@ -20,7 +20,7 @@ export async function ensureCustomizationTable() {
     CREATE TABLE IF NOT EXISTS app_customization (
       id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
       app_name TEXT NOT NULL DEFAULT 'Zea Board',
-      primary_color TEXT NOT NULL DEFAULT '#7c3aed',
+      primary_color TEXT NOT NULL DEFAULT '#4B3F91',
       secondary_color TEXT NOT NULL DEFAULT '#22d3ee',
       accent_color TEXT NOT NULL DEFAULT '#facc15',
       background_color TEXT NOT NULL DEFAULT '#f4f1ff',
@@ -30,7 +30,7 @@ export async function ensureCustomizationTable() {
       sidepanel_font_family TEXT NOT NULL DEFAULT '"Open Sans", ui-sans-serif, system-ui, sans-serif',
       column_font_family TEXT NOT NULL DEFAULT '"Open Sans", ui-sans-serif, system-ui, sans-serif',
       background_image_url TEXT NOT NULL DEFAULT '',
-      color_palette JSONB NOT NULL DEFAULT '["#7c3aed", "#a855f7", "#22d3ee", "#f97316", "#facc15"]'::jsonb,
+      color_palette JSONB NOT NULL DEFAULT '["#4B3F91", "#6B5CB8", "#22d3ee", "#f97316", "#facc15"]'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
@@ -47,6 +47,22 @@ export async function ensureCustomizationTable() {
     VALUES (1)
     ON CONFLICT (id) DO NOTHING
   `);
+
+  await pool.query(
+    `
+      UPDATE app_customization
+      SET primary_color = $1,
+          color_palette = $2::jsonb,
+          updated_at = NOW()
+      WHERE id = 1
+        AND (
+          primary_color IN ('#7c3aed', '#7C3AED')
+          OR color_palette::text ILIKE '%#7c3aed%'
+          OR color_palette::text ILIKE '%#a855f7%'
+        )
+    `,
+    [DEFAULT_CUSTOMIZATION.primaryColor, JSON.stringify(DEFAULT_CUSTOMIZATION.colorPalette)]
+  );
 
 
   await pool.query(
@@ -150,3 +166,4 @@ export async function updateCustomization(input = {}) {
 
   return toCamel(result.rows[0]);
 }
+

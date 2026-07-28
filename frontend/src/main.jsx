@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import logo from './assets/zea-board-logo.png';
 import './styles.css';
@@ -21,7 +21,7 @@ function apiFetch(path, options = {}) {
 
 const defaultCustomization = {
   appName: 'Zea Board',
-  primaryColor: '#7c3aed',
+  primaryColor: '#4B3F91',
   secondaryColor: '#22d3ee',
   accentColor: '#facc15',
   backgroundColor: '#f4f1ff',
@@ -31,7 +31,7 @@ const defaultCustomization = {
   sidepanelFontFamily: openSansSimpleFontStack,
   columnFontFamily: openSansSimpleFontStack,
   backgroundImageUrl: '',
-  colorPalette: ['#7c3aed', '#a855f7', '#22d3ee', '#f97316', '#facc15']
+  colorPalette: ['#4B3F91', '#6B5CB8', '#22d3ee', '#f97316', '#facc15']
 };
 
 const currencyOptions = ['USD', 'INR', 'EUR', 'GBP', 'CAD', 'AUD', 'SGD'];
@@ -77,8 +77,8 @@ const roleDefaultPages = {
 };
 const roleAllowedPages = {
   Owner: navItems.map((item) => item.id),
-  Admin: navItems.map((item) => item.id).filter((id) => id !== 'api-webhooks'),
-  Developer: ['dashboard', 'database', 'invoices', 'dashboard-editor', 'api-webhooks', 'audit-logs'],
+  Admin: navItems.map((item) => item.id),
+  Developer: navItems.map((item) => item.id),
   User: ['dashboard', 'invoices']
 };
 
@@ -102,7 +102,7 @@ const dashboardWidgetFolders = [
       { type: 'note', label: 'Notes', defaultTitle: 'Notes', defaultContent: 'Write your note here...', color: '#ffffff' },
       { type: 'info', label: 'Information Box', defaultTitle: 'Info Box', defaultContent: 'Important subaccount insight', color: '#ede9fe' },
       { type: 'image', label: 'Image', defaultTitle: 'Image', defaultContent: '', color: '#ffffff' },
-      { type: 'divider', label: 'Divider', defaultTitle: 'Divider', defaultContent: '', color: '#7c3aed' }
+      { type: 'divider', label: 'Divider', defaultTitle: 'Divider', defaultContent: '', color: '#4B3F91' }
     ]
   },
   {
@@ -183,8 +183,10 @@ const iconPaths = {
   users: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-3.33 0-6 1.67-6 3.73V20h12v-2.27C18 15.67 15.33 14 12 14Z',
   editor: 'M4 5h16v3H4V5Zm0 5h10v3H4v-3Zm0 5h16v4H4v-4Zm12-5h4v3h-4v-3Z',
   palette: 'M12 3a9 9 0 0 0 0 18h1.5a2.5 2.5 0 0 0 0-5H12a1.5 1.5 0 0 1 0-3h1a8 8 0 0 0 8-8.02C19.36 3.75 15.95 3 12 3ZM7.5 11A1.5 1.5 0 1 1 7.5 8a1.5 1.5 0 0 1 0 3Zm3-3A1.5 1.5 0 1 1 10.5 5a1.5 1.5 0 0 1 0 3Zm4 0A1.5 1.5 0 1 1 14.5 5a1.5 1.5 0 0 1 0 3Z',
+  gear: 'M19.43 12.98c.04-.32.07-.65.07-.98s-.02-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a7.28 7.28 0 0 0-1.69-.98L14.5 2.42A.5.5 0 0 0 14 2h-4a.5.5 0 0 0-.5.42L9.13 5.07c-.61.24-1.18.56-1.69.98l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.5.5 0 0 0 .12.64l2.11 1.65c-.04.32-.07.65-.07.98s.02.66.07.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46c.13.22.39.31.61.22l2.49-1c.51.4 1.08.73 1.69.98l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.61-.24 1.18-.56 1.69-.98l2.49 1c.22.09.48 0 .61-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65ZM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5Z',
   bell: 'M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6-2-2v-5a5 5 0 0 0-10 0v5l-2 2v1h14v-1Z',
   webhook: 'M7 7a4 4 0 0 1 7.46-2H17a4 4 0 0 1 0 8h-3v-2h3a2 2 0 0 0 0-4h-3.76l-.28-.62A2 2 0 0 0 9.2 7H7Zm10 10a4 4 0 0 1-7.46 2H7a4 4 0 0 1 0-8h3v2H7a2 2 0 0 0 0 4h3.76l.28.62A2 2 0 0 0 14.8 17H17Z',
+  logout: 'M10 17v-2h4V9h-4V7h6v10h-6Zm-1.5-1.5L3 12l5.5-3.5V11H13v2H8.5v2.5ZM19 4H9v2H7V2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7v-4h2v2h10V4Z',
   logs: 'M5 4h14v2H5V4Zm0 5h14v2H5V9Zm0 5h10v2H5v-2Zm0 5h14v2H5v-2Z'
 };
 
@@ -486,7 +488,7 @@ function App() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [settingsMenuOpen, setSettingsMenuOpen] = useState(settingsPageIds.has(activePage));
+  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [customization, setCustomization] = useState(defaultCustomization);
   const [customForm, setCustomForm] = useState(defaultCustomization);
   const [showInvoiceCardEditor, setShowInvoiceCardEditor] = useState(false);
@@ -1648,7 +1650,7 @@ function App() {
                 <div className="widget-folder" key={folder.id}>
                   <button type="button" className="widget-folder-title" onClick={() => setOpenWidgetFolders((current) => ({ ...current, [folder.id]: !current[folder.id] }))}>
                     {folder.label}
-                    <span>{openWidgetFolders[folder.id] ? '−' : '+'}</span>
+                    <span>{openWidgetFolders[folder.id] ? 'âˆ’' : '+'}</span>
                   </button>
                   {openWidgetFolders[folder.id] && (
                     <div className="widget-folder-list">
@@ -1874,41 +1876,44 @@ function App() {
   return (
     <main className={`app-shell ${sidebarOpen ? '' : 'sidebar-collapsed'}`} style={appStyle}>
       <aside className="sidebar">
-        <div className="brand-row"><img src={logo} alt="Zea Board" /><div><strong>Zea Board</strong><span>Admin Console</span></div></div>
-        <div className="sidebar-user-card">
-          <span>{authUser.role}</span>
-          <strong>{authUser.name}</strong>
-          <small>{authUser.email}</small>
-          <button type="button" className="ghost-button" onClick={handleLogout}>Logout</button>
-        </div>
+        <div className="brand-row"><img src={logo} alt="Zea Board" /><div><strong>Zea Board</strong></div></div>
         <button className="collapse-button" onClick={() => setSidebarOpen(!sidebarOpen)}>{sidebarOpen ? '‹' : '›'}</button>
-        <div className="nav-group">
-          <p>Main</p>
-          {mainNavItems.map((item) => <button key={item.id} className={activePage === item.id ? 'active' : ''} onClick={() => setActivePage(item.id)}><span><Icon name={item.icon} /></span><b>{item.label}</b></button>)}
-          {dashboards.map((dashboard) => (
-            <button key={dashboard.id} className={activePage === `dashboard-view:${dashboard.id}` ? 'active' : ''} onClick={() => setActivePage(`dashboard-view:${dashboard.id}`)}>
-              <span><Icon name="dashboard" /></span>
-              <b>{dashboard.name}</b>
-            </button>
-          ))}
-          {!!visibleSettingsItems.length && (
-            <div className="settings-flyout-wrap" ref={settingsFlyoutRef}>
-              <button className={settingsPageIds.has(activePage) ? 'active' : ''} onClick={() => setSettingsMenuOpen((isOpen) => !isOpen)}>
-                <span><Icon name="editor" /></span>
-                <b>Settings</b>
+        <div className="sidebar-nav-scroll">
+          <div className="nav-group">
+            <p>Main</p>
+            {mainNavItems.map((item) => <button key={item.id} className={activePage === item.id ? 'active' : ''} onClick={() => setActivePage(item.id)}><span><Icon name={item.icon} /></span><b>{item.label}</b></button>)}
+            {dashboards.map((dashboard) => (
+              <button key={dashboard.id} className={activePage === `dashboard-view:${dashboard.id}` ? 'active' : ''} onClick={() => setActivePage(`dashboard-view:${dashboard.id}`)}>
+                <span><Icon name="dashboard" /></span>
+                <b>{dashboard.name}</b>
               </button>
-              {settingsMenuOpen && (
-                <div className="settings-submenu">
-                  {visibleSettingsItems.map((item) => (
-                    <button key={item.id} className={activePage === item.id ? 'active' : ''} onClick={() => { setActivePage(item.id); setSettingsMenuOpen(false); }}>
-                      <span><Icon name={item.icon} /></span>
-                      <b>{item.label}</b>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+            ))}
+          </div>
+        </div>
+        <div className="sidebar-bottom">
+          <div className="sidebar-user-card" ref={settingsFlyoutRef}>
+            {!!visibleSettingsItems.length && (
+              <button type="button" className="profile-settings-button" aria-label="Open settings" onClick={() => setSettingsMenuOpen((isOpen) => !isOpen)}>
+                <Icon name="gear" />
+              </button>
+            )}
+            {settingsMenuOpen && !!visibleSettingsItems.length && (
+              <div className="settings-submenu profile-settings-menu">
+                {visibleSettingsItems.map((item) => (
+                  <button key={item.id} className={activePage === item.id ? 'active' : ''} onClick={() => { setActivePage(item.id); setSettingsMenuOpen(false); }}>
+                    <b>{item.label}</b>
+                  </button>
+                ))}
+              </div>
+            )}
+            <span>{authUser.role}</span>
+            <strong>{authUser.name}</strong>
+            <small>{authUser.email}</small>
+            <button type="button" className="ghost-button logout-button" onClick={handleLogout}>
+              <Icon name="logout" />
+              <b>Logout</b>
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -1922,3 +1927,8 @@ function App() {
 }
 
 createRoot(document.getElementById('root')).render(<App />);
+
+
+
+
+
