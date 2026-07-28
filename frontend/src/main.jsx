@@ -12,6 +12,13 @@ const apiBaseUrl =
     ? `${import.meta.env.VITE_API_DOMAIN}:${import.meta.env.VITE_API_PORT}`
     : '');
 
+function apiFetch(path, options = {}) {
+  return fetch(`${apiBaseUrl}${path}`, {
+    ...options,
+    credentials: 'include'
+  });
+}
+
 const defaultCustomization = {
   appName: 'Zea Board',
   primaryColor: '#7c3aed',
@@ -62,6 +69,18 @@ const navItems = [
 const navPageIds = new Set(navItems.map((item) => item.id));
 const settingsItems = navItems.filter((item) => item.group === 'Settings');
 const settingsPageIds = new Set(settingsItems.map((item) => item.id));
+const roleDefaultPages = {
+  Owner: 'dashboard',
+  Admin: 'dashboard',
+  Developer: 'dashboard-editor',
+  User: 'invoices'
+};
+const roleAllowedPages = {
+  Owner: navItems.map((item) => item.id),
+  Admin: navItems.map((item) => item.id).filter((id) => id !== 'api-webhooks'),
+  Developer: ['dashboard', 'database', 'invoices', 'dashboard-editor', 'api-webhooks', 'audit-logs'],
+  User: ['dashboard', 'invoices']
+};
 
 const invoiceCardColorDefaults = {
   totalInvoices: '#3158a8',
@@ -185,7 +204,9 @@ function UiIcon({ name }) {
     chevronRight: 'M8.5 19l7-7-7-7L10 3.5l8.5 8.5L10 20.5 8.5 19Z',
     sortAsc: 'M7 14l5-5 5 5H7Z',
     sortDesc: 'M7 10h10l-5 5-5-5Z',
-    search: 'M10 4a6 6 0 1 0 3.65 10.76l4.3 4.29 1.1-1.1-4.29-4.3A6 6 0 0 0 10 4Zm0 1.8a4.2 4.2 0 1 1 0 8.4 4.2 4.2 0 0 1 0-8.4Z'
+    search: 'M10 4a6 6 0 1 0 3.65 10.76l4.3 4.29 1.1-1.1-4.29-4.3A6 6 0 0 0 10 4Zm0 1.8a4.2 4.2 0 1 1 0 8.4 4.2 4.2 0 0 1 0-8.4Z',
+    eye: 'M12 5c5 0 8.75 4.17 10 7-1.25 2.83-5 7-10 7S3.25 14.83 2 12c1.25-2.83 5-7 10-7Zm0 2c-3.35 0-6.12 2.35-7.72 5 1.6 2.65 4.37 5 7.72 5s6.12-2.35 7.72-5C18.12 9.35 15.35 7 12 7Zm0 2.25A2.75 2.75 0 1 1 12 14.75 2.75 2.75 0 0 1 12 9.25Z',
+    eyeOff: 'M3.28 2 22 20.72 20.72 22l-3.06-3.06A10.82 10.82 0 0 1 12 20c-5 0-8.75-4.17-10-7a15.18 15.18 0 0 1 4.13-4.86L2 3.28 3.28 2Zm4.28 7.56A13.06 13.06 0 0 0 4.28 13c1.6 2.65 4.37 5 7.72 5 1.47 0 2.83-.45 4.04-1.14l-1.86-1.86A2.75 2.75 0 0 1 9 11.82L7.56 9.56ZM12 6c5 0 8.75 4.17 10 7a14.5 14.5 0 0 1-2.27 3.16l-1.42-1.42A12.48 12.48 0 0 0 19.72 13C18.12 10.35 15.35 8 12 8c-.74 0-1.45.12-2.13.33L8.3 6.76A10.45 10.45 0 0 1 12 6Zm2.7 6.43-3.13-3.13A2.75 2.75 0 0 1 14.7 12.43Z'
   };
   return <svg className={`ui-icon ui-icon-${name}`} viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d={paths[name]} /></svg>;
 }
@@ -350,19 +371,68 @@ function ExportMenu({ onExport }) {
 }
 
 function DataTable({ columns, rows, rowKey, emptyText, onSort, sortState }) {
+  const [columnWidths, setColumnWidths] = useState({});
+  const resizingColumnRef = useRef(null);
+  const defaultColumnWidth = 170;
+  const minimumColumnWidth = 90;
+  const tableWidth = columns.reduce((total, column) => total + (columnWidths[column.key] || column.width || defaultColumnWidth), 0);
+  const leftAlignedLabels = new Set(['sub account name', 'contact name']);
+
+  function columnAlignClass(column) {
+    return leftAlignedLabels.has(String(column.label || '').toLowerCase()) ? 'table-cell-left' : 'table-cell-center';
+  }
+
+  useEffect(() => {
+    function handleMouseMove(event) {
+      if (!resizingColumnRef.current) return;
+      const { key, startX, startWidth } = resizingColumnRef.current;
+      const nextWidth = Math.max(minimumColumnWidth, startWidth + event.clientX - startX);
+      setColumnWidths((currentWidths) => ({ ...currentWidths, [key]: nextWidth }));
+    }
+
+    function handleMouseUp() {
+      resizingColumnRef.current = null;
+      document.body.classList.remove('column-resizing');
+    }
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
+  function startColumnResize(event, column) {
+    event.preventDefault();
+    event.stopPropagation();
+    resizingColumnRef.current = {
+      key: column.key,
+      startX: event.clientX,
+      startWidth: columnWidths[column.key] || event.currentTarget.parentElement.offsetWidth || column.width || defaultColumnWidth
+    };
+    document.body.classList.add('column-resizing');
+  }
+
   return (
     <div className="table-card">
       <div className="table-wrap">
-        <table>
+        <table className="resizable-table" style={{ minWidth: tableWidth }}>
+          <colgroup>
+            {columns.map((column) => <col key={column.key} style={{ width: columnWidths[column.key] || column.width || defaultColumnWidth }} />)}
+          </colgroup>
           <thead>
             <tr>
               {columns.map((column) => (
-                <th key={column.key}>
-                  {column.sortable && onSort ? (
-                    <button className="sort-button" onClick={() => onSort(column.key)}>
-                      {column.label} {sortState?.sortBy === column.key ? <UiIcon name={sortState.sortDirection === 'asc' ? 'sortAsc' : 'sortDesc'} /> : null}
-                    </button>
-                  ) : column.label}
+                <th key={column.key} className={`resizable-th ${columnAlignClass(column)}`}>
+                  <div className="table-header-cell">
+                    {column.sortable && onSort ? (
+                      <button className="sort-button" onClick={() => onSort(column.key)}>
+                        {column.label} {sortState?.sortBy === column.key ? <UiIcon name={sortState.sortDirection === 'asc' ? 'sortAsc' : 'sortDesc'} /> : null}
+                      </button>
+                    ) : <span>{column.label}</span>}
+                    <span className="column-resize-handle" onMouseDown={(event) => startColumnResize(event, column)} title="Drag to resize column" />
+                  </div>
                 </th>
               ))}
             </tr>
@@ -370,7 +440,7 @@ function DataTable({ columns, rows, rowKey, emptyText, onSort, sortState }) {
           <tbody>
             {rows.map((row, index) => (
               <tr key={row[rowKey] || index}>
-                {columns.map((column) => <td key={column.key}>{column.render ? column.render(row) : row[column.key]}</td>)}
+                {columns.map((column) => <td key={column.key} className={columnAlignClass(column)}>{column.render ? column.render(row) : row[column.key]}</td>)}
               </tr>
             ))}
           </tbody>
@@ -382,6 +452,12 @@ function DataTable({ columns, rows, rowKey, emptyText, onSort, sortState }) {
 }
 
 function App() {
+  const [authUser, setAuthUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [loginForm, setLoginForm] = useState({ identifier: '', password: '' });
+  const [loginError, setLoginError] = useState('');
+  const [loginSubmitting, setLoginSubmitting] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [form, setForm] = useState({ name: '', locationId: '', apiKey: '' });
   const [subAccounts, setSubAccounts] = useState([]);
   const [activeSubAccountId, setActiveSubAccountId] = useState('');
@@ -438,7 +514,7 @@ function App() {
   };
 
   async function loadSubAccounts() {
-    const response = await fetch(`${apiBaseUrl}/api/sub-accounts`);
+    const response = await apiFetch('/api/sub-accounts');
     const data = await response.json();
     setSubAccounts(data.subAccounts || []);
     if (!activeSubAccountId && data.subAccounts?.length) {
@@ -452,7 +528,7 @@ function App() {
       return;
     }
 
-    const response = await fetch(`${apiBaseUrl}/api/sub-accounts/${subAccountId}/contacts`);
+    const response = await apiFetch(`/api/sub-accounts/${subAccountId}/contacts`);
     const data = await response.json();
     setContacts(data.contacts || []);
   }
@@ -460,14 +536,14 @@ function App() {
   async function loadDashboardContacts(subAccountId) {
     if (!subAccountId || dashboardContactsBySubAccount[subAccountId]) return;
 
-    const response = await fetch(`${apiBaseUrl}/api/sub-accounts/${subAccountId}/contacts?limit=500`);
+    const response = await apiFetch(`/api/sub-accounts/${subAccountId}/contacts?limit=500`);
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Failed to load dashboard contacts');
     setDashboardContactsBySubAccount((currentContacts) => ({ ...currentContacts, [subAccountId]: data.contacts || [] }));
   }
 
   async function loadOpportunities() {
-    const response = await fetch(`${apiBaseUrl}/api/opportunities`);
+    const response = await apiFetch('/api/opportunities');
     const data = await response.json();
     setOpportunities(data.opportunities || []);
   }
@@ -479,7 +555,7 @@ function App() {
       if (value !== '' && value !== null && value !== undefined) params.set(key, value);
     });
 
-    const response = await fetch(`${apiBaseUrl}/api/invoices?${params.toString()}`);
+    const response = await apiFetch(`/api/invoices?${params.toString()}`);
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Failed to load invoices');
     setInvoices(data.invoices || []);
@@ -493,20 +569,20 @@ function App() {
   }
 
   async function loadUsers() {
-    const response = await fetch(`${apiBaseUrl}/api/users`);
+    const response = await apiFetch('/api/users');
     const data = await response.json();
     setUsers(data.users || []);
   }
 
   async function loadDashboards() {
-    const response = await fetch(`${apiBaseUrl}/api/dashboards`);
+    const response = await apiFetch('/api/dashboards');
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Failed to load dashboards');
     setDashboards(data.dashboards || []);
   }
 
   async function loadCustomization() {
-    const response = await fetch(`${apiBaseUrl}/api/customization`);
+    const response = await apiFetch('/api/customization');
     const data = await response.json();
     const next = { ...defaultCustomization, ...(data.customization || {}) };
     setCustomization(next);
@@ -520,9 +596,57 @@ function App() {
       if (value) params.set(key, value);
     });
     const query = params.toString();
-    const response = await fetch(`${apiBaseUrl}/api/audit-logs${query ? `?${query}` : ''}`);
+    const response = await apiFetch(`/api/audit-logs${query ? `?${query}` : ''}`);
     const data = await response.json();
     setAuditLogs(data.logs || []);
+  }
+
+  async function loadCurrentUser() {
+    try {
+      const response = await apiFetch('/api/auth/me');
+      const data = await response.json();
+      setAuthUser(data.user || null);
+    } catch {
+      setAuthUser(null);
+    } finally {
+      setAuthLoading(false);
+    }
+  }
+
+  async function handleLogin(event) {
+    event.preventDefault();
+    if (loginSubmitting) return;
+    setLoginError('');
+
+    if (!loginForm.identifier.trim() || !loginForm.password) {
+      setLoginError('Enter your email/username and password.');
+      return;
+    }
+
+    setLoginSubmitting(true);
+    try {
+      const response = await apiFetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginForm)
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Login failed');
+      setAuthUser(data.user);
+      setLoginForm({ identifier: '', password: '' });
+      setActivePage(roleDefaultPages[data.user.role] || 'dashboard');
+    } catch (error) {
+      setLoginError(error.message);
+    } finally {
+      setLoginSubmitting(false);
+    }
+  }
+
+  async function handleLogout() {
+    await apiFetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+    setAuthUser(null);
+    setMessage('');
+    setActivePage('dashboard');
   }
 
   async function refreshAll() {
@@ -530,8 +654,13 @@ function App() {
   }
 
   useEffect(() => {
-    refreshAll().catch((error) => setMessage(error.message));
+    loadCurrentUser();
   }, []);
+
+  useEffect(() => {
+    if (!authUser) return;
+    refreshAll().catch((error) => setMessage(error.message));
+  }, [authUser]);
 
   useEffect(() => {
     invoiceQueryRef.current = invoiceQuery;
@@ -564,9 +693,9 @@ function App() {
   useEffect(() => {
     const viewedDashboardId = String(activePage || '').startsWith('dashboard-view:') ? activePage.replace('dashboard-view:', '') : '';
     const viewedDashboard = dashboards.find((dashboard) => dashboard.id === viewedDashboardId);
-    const subAccountId = editorDashboard?.subAccountId || viewedDashboard?.subAccountId;
+    const subAccountId = authUser ? editorDashboard?.subAccountId || viewedDashboard?.subAccountId : '';
     if (subAccountId) loadDashboardContacts(subAccountId).catch((error) => setMessage(error.message));
-  }, [activePage, dashboards, editorDashboard?.subAccountId]);
+  }, [activePage, dashboards, editorDashboard?.subAccountId, authUser]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !isKnownPage(activePage)) return;
@@ -581,9 +710,10 @@ function App() {
   }, [activePage]);
 
   useEffect(() => {
+    if (!authUser) return undefined;
     async function loadExchangeRates() {
       try {
-        const response = await fetch(`${apiBaseUrl}/api/exchange-rates`);
+        const response = await apiFetch('/api/exchange-rates');
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Unable to load exchange rates');
         setExchangeRates({ USD: 1, ...(data.rates || {}) });
@@ -596,14 +726,15 @@ function App() {
     loadExchangeRates();
     const intervalId = window.setInterval(loadExchangeRates, 30 * 60 * 1000);
     return () => window.clearInterval(intervalId);
-  }, []);
+  }, [authUser]);
 
   useEffect(() => {
+    if (!authUser) return;
     loadContacts(activeSubAccountId).catch((error) => setMessage(error.message));
-  }, [activeSubAccountId]);
+  }, [activeSubAccountId, authUser]);
 
   useEffect(() => {
-    if (!activeSubAccountId) return undefined;
+    if (!authUser || !activeSubAccountId) return undefined;
     const intervalId = window.setInterval(() => {
       loadContacts(activeSubAccountId).catch((error) => setMessage(error.message));
       loadOpportunities().catch((error) => setMessage(error.message));
@@ -611,7 +742,7 @@ function App() {
       loadUsers().catch((error) => setMessage(error.message));
     }, 10000);
     return () => window.clearInterval(intervalId);
-  }, [activeSubAccountId]);
+  }, [activeSubAccountId, authUser]);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -619,7 +750,7 @@ function App() {
     setMessage('');
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/sub-accounts`, {
+      const response = await apiFetch('/api/sub-accounts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
@@ -645,7 +776,7 @@ function App() {
     setMessage('');
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/sub-accounts/${activeSubAccountId}/sync`, { method: 'POST' });
+      const response = await apiFetch(`/api/sub-accounts/${activeSubAccountId}/sync`, { method: 'POST' });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Sync failed');
       setMessage(`Synced ${data.synced} contacts`);
@@ -672,7 +803,7 @@ function App() {
           .map((color) => color.trim())
           .filter(Boolean)
       };
-      const response = await fetch(`${apiBaseUrl}/api/customization`, {
+      const response = await apiFetch('/api/customization', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -709,7 +840,7 @@ function App() {
     setMessage('');
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/dashboards`, {
+      const response = await apiFetch('/api/dashboards', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -739,7 +870,7 @@ function App() {
     if (!editorDashboard?.id) return;
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/dashboards/${editorDashboard.id}`, {
+      const response = await apiFetch(`/api/dashboards/${editorDashboard.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -863,7 +994,7 @@ function App() {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== '' && value !== null && value !== undefined) query.set(key, value);
     });
-    const response = await fetch(`${apiBaseUrl}/api/invoices?${query.toString()}`);
+    const response = await apiFetch(`/api/invoices?${query.toString()}`);
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Export failed');
     return data.invoices || [];
@@ -913,7 +1044,7 @@ function App() {
         return;
       }
 
-      fetch(`${apiBaseUrl}/api/audit-logs`, {
+      apiFetch('/api/audit-logs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1674,25 +1805,82 @@ function App() {
     return renderEmployeeManagement();
   }
 
+  function canAccessPage(pageId) {
+    if (!authUser) return false;
+    if (String(pageId).startsWith('dashboard-view:')) return true;
+    return (roleAllowedPages[authUser.role] || roleAllowedPages.User).includes(pageId);
+  }
+
+  function renderLoginPage() {
+    return (
+      <main className="login-shell">
+        <section className="login-card">
+          <div className="login-brand">
+            <img src={logo} alt="Zea Board" />
+            <div>
+              <h1>Zea Board</h1>
+              <p>Sign in to continue to your role-based workspace.</p>
+            </div>
+          </div>
+          <form onSubmit={handleLogin} className="login-form">
+            <label>Email or Username
+              <input value={loginForm.identifier} onChange={(event) => setLoginForm({ ...loginForm, identifier: event.target.value })} placeholder="owner@example.com" autoComplete="username" />
+            </label>
+            <label>Password
+              <span className="password-field">
+                <input type={showLoginPassword ? 'text' : 'password'} value={loginForm.password} onChange={(event) => setLoginForm({ ...loginForm, password: event.target.value })} placeholder="Enter password" autoComplete="current-password" />
+                <button type="button" className="password-toggle" onClick={() => setShowLoginPassword((isVisible) => !isVisible)} aria-label={showLoginPassword ? 'Hide password' : 'Show password'}>
+                  <UiIcon name={showLoginPassword ? 'eyeOff' : 'eye'} />
+                </button>
+              </span>
+            </label>
+            <button type="submit" className="login-submit" disabled={loginSubmitting}>
+              {loginSubmitting ? 'Logging in...' : 'Login'}
+            </button>
+            {loginError && <p className="login-error">{loginError}</p>}
+          </form>
+        </section>
+      </main>
+    );
+  }
+
   function renderRefreshButton() {
     return <button onClick={refreshAll} disabled={loading}>{loading ? 'Refreshing...' : 'Refresh'}</button>;
   }
 
   function renderPage() {
-    if (activePage === 'dashboard') return renderDashboard();
-    if (activePage === 'database') return renderDatabasePage();
-    if (activePage === 'invoices') return renderInvoicesPage();
-    if (String(activePage).startsWith('dashboard-view:')) return renderCustomDashboardView(activePage.replace('dashboard-view:', ''));
-    if (settingsPageIds.has(activePage)) return renderSettingsContent(activePage);
+    if (!canAccessPage(activePage)) return renderPageById(roleDefaultPages[authUser?.role] || 'invoices');
+    return renderPageById(activePage);
+  }
+
+  function renderPageById(pageId) {
+    if (pageId === 'dashboard') return renderDashboard();
+    if (pageId === 'database') return renderDatabasePage();
+    if (pageId === 'invoices') return renderInvoicesPage();
+    if (String(pageId).startsWith('dashboard-view:')) return renderCustomDashboardView(pageId.replace('dashboard-view:', ''));
+    if (settingsPageIds.has(pageId)) return renderSettingsContent(pageId);
     return renderDashboard();
   }
 
-  const mainNavItems = navItems.filter((item) => !item.group);
+  const mainNavItems = navItems.filter((item) => !item.group && canAccessPage(item.id));
+  const visibleSettingsItems = settingsItems.filter((item) => canAccessPage(item.id));
+
+  if (authLoading) {
+    return <main className="login-shell"><section className="login-card"><p className="eyebrow">Loading</p><h1>Checking session...</h1></section></main>;
+  }
+
+  if (!authUser) return renderLoginPage();
 
   return (
     <main className={`app-shell ${sidebarOpen ? '' : 'sidebar-collapsed'}`} style={appStyle}>
       <aside className="sidebar">
         <div className="brand-row"><img src={logo} alt="Zea Board" /><div><strong>Zea Board</strong><span>Admin Console</span></div></div>
+        <div className="sidebar-user-card">
+          <span>{authUser.role}</span>
+          <strong>{authUser.name}</strong>
+          <small>{authUser.email}</small>
+          <button type="button" className="ghost-button" onClick={handleLogout}>Logout</button>
+        </div>
         <button className="collapse-button" onClick={() => setSidebarOpen(!sidebarOpen)}>{sidebarOpen ? '‹' : '›'}</button>
         <div className="nav-group">
           <p>Main</p>
@@ -1703,30 +1891,28 @@ function App() {
               <b>{dashboard.name}</b>
             </button>
           ))}
-          <div className="settings-flyout-wrap" ref={settingsFlyoutRef}>
-            <button className={settingsPageIds.has(activePage) ? 'active' : ''} onClick={() => setSettingsMenuOpen((isOpen) => !isOpen)}>
-              <span><Icon name="editor" /></span>
-              <b>Settings</b>
-            </button>
-            {settingsMenuOpen && (
-              <div className="settings-submenu">
-                {settingsItems.map((item) => (
-                  <button key={item.id} className={activePage === item.id ? 'active' : ''} onClick={() => { setActivePage(item.id); setSettingsMenuOpen(false); }}>
-                    <span><Icon name={item.icon} /></span>
-                    <b>{item.label}</b>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          {!!visibleSettingsItems.length && (
+            <div className="settings-flyout-wrap" ref={settingsFlyoutRef}>
+              <button className={settingsPageIds.has(activePage) ? 'active' : ''} onClick={() => setSettingsMenuOpen((isOpen) => !isOpen)}>
+                <span><Icon name="editor" /></span>
+                <b>Settings</b>
+              </button>
+              {settingsMenuOpen && (
+                <div className="settings-submenu">
+                  {visibleSettingsItems.map((item) => (
+                    <button key={item.id} className={activePage === item.id ? 'active' : ''} onClick={() => { setActivePage(item.id); setSettingsMenuOpen(false); }}>
+                      <span><Icon name={item.icon} /></span>
+                      <b>{item.label}</b>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </aside>
 
       <section className="workspace">
-        <header className="topbar">
-          <div className="search-box"><UiIcon name="search" /> <span>Search records, invoices, contacts...</span></div>
-          <div className="topbar-actions"><span>{new Date().toLocaleDateString()}</span><button onClick={refreshAll}>Sync View</button></div>
-        </header>
         {message && <p className="status-message">{message}</p>}
         {activePage === 'database' && renderAddSubAccountCard()}
         {renderPage()}

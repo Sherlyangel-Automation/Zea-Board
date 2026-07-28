@@ -11,12 +11,15 @@ import customizationRouter from './routes/customization.js';
 import auditLogsRouter from './routes/auditLogs.js';
 import exchangeRatesRouter from './routes/exchangeRates.js';
 import dashboardsRouter from './routes/dashboards.js';
+import authRouter from './routes/auth.js';
 import webhooksRouter, { handleGhlWebhook, webhookHealth } from './routes/webhooks.js';
+import { requireAuth } from './middleware/auth.js';
 
 const app = express();
 
+app.set('trust proxy', 1);
 app.use(helmet());
-app.use(cors({ origin: config.frontendOrigins }));
+app.use(cors({ origin: config.frontendOrigins, credentials: true }));
 app.use(express.json({ limit: '2mb' }));
 
 app.get('/', (_request, response) => {
@@ -50,6 +53,9 @@ app.get('/webhook-url', (_request, response) => {
   });
 });
 
+app.use('/api/auth', authRouter);
+app.use('/api/webhooks', webhooksRouter);
+app.use('/api', requireAuth);
 app.use('/api/sub-accounts', subAccountsRouter);
 app.use('/api/opportunities', opportunitiesRouter);
 app.use('/api/invoices', invoicesRouter);
@@ -58,7 +64,6 @@ app.use('/api/customization', customizationRouter);
 app.use('/api/audit-logs', auditLogsRouter);
 app.use('/api/exchange-rates', exchangeRatesRouter);
 app.use('/api/dashboards', dashboardsRouter);
-app.use('/api/webhooks', webhooksRouter);
 
 app.use((error, _request, response, _next) => {
   if (error instanceof ZodError) {
